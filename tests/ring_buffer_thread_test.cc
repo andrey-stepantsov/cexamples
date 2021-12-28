@@ -1,4 +1,5 @@
 #include "ring_buffer.hpp"
+#include "time_util.hpp"
 #include <gtest/gtest.h>
 #include <stdio.h>
 #include <strings.h>
@@ -29,18 +30,18 @@ TEST(RingBufferThreadTest, PutThree) {
 }
 
 const timespec pump_sleep_duration{.tv_nsec = 100};
-const timespec drain_sleep_duration{.tv_nsec = 10000};
-const int max_rep_count = 10000;
-const int max_put_count = 1000;
+const timespec drain_sleep_duration{.tv_nsec = 1000};
+const long int max_put_count = 10000;
 
 int pump_data(void *arg) {
   rbuf *b = (rbuf *)arg;
-  const int repetitions = 17000;
+  const double start = wall_time();
+  const double stop = start + 1.0;
   size_t pumped = 0;
   int count = 0;
-  while (count <= repetitions && count < max_rep_count) {
+  char buffer[50];
+  while (1) {
     ++count;
-    char buffer[1024];
     sprintf(buffer, "%.5d;", count);
     size_t size = strlen(buffer);
     size_t offset = 0;
@@ -51,6 +52,9 @@ int pump_data(void *arg) {
       thrd_sleep(&pump_sleep_duration, NULL);
     }
     pumped += offset;
+    const double now = wall_time();
+    if (now > stop)
+      break;
   }
   return pumped;
 }
@@ -58,18 +62,23 @@ int pump_data(void *arg) {
 int drain_data(void *arg) {
   rbuf *b = (rbuf *)arg;
   size_t drained = 0;
+  const double start = wall_time();
+  const double stop = start + 2.0;
   int count = 0;
   int zero_read = 0;
-  while (count < max_rep_count) {
+  const size_t size = 256;
+  char buffer[size];
+  while (1) {
     ++count;
-    const size_t size = 256;
-    char buffer[size];
     size_t read = rbuf_get(*b, (unsigned char *)buffer, size);
     if (0 == read) {
       zero_read++;
     }
     drained += read;
     thrd_sleep(&drain_sleep_duration, NULL);
+    const double now = wall_time();
+    if (now > stop)
+      break;
   }
   printf("zero reads: %d\n", zero_read);
   return drained;
