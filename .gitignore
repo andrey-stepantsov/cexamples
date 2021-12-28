@@ -1,6 +1,7 @@
 #
 .cache
 .session.vim
+.vimrc
 
 # Compiled Object files
 *.slo
