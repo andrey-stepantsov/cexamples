@@ -3,20 +3,21 @@
 
 rbuf_result rbuf_init(rbuf &b, size_t capacity) {
   b.start = 0;
-  b.buffer = (unsigned char*)malloc(capacity);
+  b.buffer = (unsigned char *)malloc(capacity);
   b.taken = 0;
-  if(NULL == b.buffer) return rbuf_error; 
+  if (NULL == b.buffer)
+    return rbuf_error;
   b.capacity = capacity;
-  if(thrd_success != mtx_init(&b.mtx, mtx_recursive)){
-	 free(b.buffer);
-		return rbuf_error;
+  if (thrd_success != mtx_init(&b.mtx, mtx_recursive)) {
+    free(b.buffer);
+    return rbuf_error;
   }
   return rbuf_success;
 }
 
-void rbuf_destroy(rbuf &b) { 
-	free(b.buffer);
-	mtx_destroy(&b.mtx); 
+void rbuf_destroy(rbuf &b) {
+  free(b.buffer);
+  mtx_destroy(&b.mtx);
 }
 
 size_t rbuf_capacity(rbuf &b) {
@@ -40,7 +41,7 @@ size_t rbuf_taken(rbuf &b) {
 size_t rbuf_available(rbuf &b) {
   if (thrd_success != mtx_lock(&b.mtx))
     return -1;
-  const size_t available = b.capacity - b.taken; 
+  const size_t available = b.capacity - b.taken;
   if (thrd_success != mtx_unlock(&b.mtx))
     return -1;
   return available;
