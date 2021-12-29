@@ -14,11 +14,10 @@ int put_three(void *arg) {
 
 TEST(RingBufferThreadTest, PutThree) {
   rbuf b;
-  rbuf_init(b);
+  rbuf_init(b, 1024);
   EXPECT_EQ(b.start, 0);
-  EXPECT_EQ(b.end, 0);
   EXPECT_EQ(rbuf_taken(b), 0);
-  EXPECT_EQ(rbuf_available(b), rbuf_size(b));
+  EXPECT_EQ(rbuf_available(b), rbuf_capacity(b));
   thrd_t thrd;
   if (thrd_success == thrd_create(&thrd, put_three, &b)) {
     int result;
@@ -39,11 +38,12 @@ int pump_data(void *arg) {
   const double stop = start + 1.0;
   size_t pumped = 0;
   int count = 0;
-  char buffer[50];
+  char buffer[500];
   while (1) {
     ++count;
-    sprintf(buffer, "%.5d;", count);
-    size_t size = strlen(buffer);
+//    sprintf(buffer, "%.5d;", count);
+    size_t size = sizeof(buffer);
+//	size_t size = strlen(buffer);
     size_t offset = 0;
     int put_count = 0;
     while (size != offset && put_count < max_put_count) {
@@ -86,7 +86,7 @@ int drain_data(void *arg) {
 
 TEST(RingBufferThreadTest, PumpData) {
   rbuf b;
-  rbuf_init(b);
+  rbuf_init(b, 1024);
   thrd_t pump_thrd;
   thrd_t drain_thrd;
   if (thrd_success == thrd_create(&pump_thrd, pump_data, &b) &&
@@ -101,4 +101,5 @@ TEST(RingBufferThreadTest, PumpData) {
   } else {
     FAIL();
   }
+  rbuf_destroy(b);
 }
