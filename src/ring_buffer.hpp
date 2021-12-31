@@ -3,16 +3,32 @@
 #include <stdlib.h>
 #include <threads.h>
 
-enum rbuf_result { rbuf_success, rbuf_error };
+/**
+ * @page ring_buffer Ring Buffer
+ * @ref time_util
+ */
 
-struct rbuf {
-  size_t start;
-  size_t taken;
-  size_t capacity;
-  unsigned char *buffer;
-  mtx_t mtx;
+/**
+ * enum to indicate result of a buffer initialization call
+ */
+enum rbuf_result {
+    /**
+     * indicates success of \ref rbuf_init
+     */
+    rbuf_success,
+    /**
+     * indicates failure of @ref rbuf_init
+     */
+    rbuf_error
 };
 
+struct rbuf {
+    size_t start;
+    size_t taken;
+    size_t capacity;
+    unsigned char *buffer;
+    mtx_t mtx;
+};
 
 rbuf_result rbuf_init(rbuf &b, size_t capacity);
 void rbuf_destroy(rbuf &b);
