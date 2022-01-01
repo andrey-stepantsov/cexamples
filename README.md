@@ -28,7 +28,7 @@ STRIP_FROM_PATH        = ../ # or ../..
 build directory
 ```
 
-### my `~/.vimrc`
+### my '~/.vimrc'
 ```
 " Plugins will be downloaded under the specified directory.
 call plug#begin(has('nvim') ? stdpath('data') . '/plugged' : '~/.vim/plugged')
