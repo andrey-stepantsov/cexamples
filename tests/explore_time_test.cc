@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <stdio.h>
 #include <strings.h>
-#include <threads.h>
+// #include <threads.h>
 
 TEST(ExploreTimeTest, Nanosecond) {
   EXPECT_EQ(1.0 / 10.0, 1e-1);
@@ -15,14 +15,14 @@ TEST(ExploreTimeTest, ToDouble) {
   EXPECT_NEAR(now_double, now.tv_sec, 1);
 }
 
-int do_nothing(void *arg) {
+void* do_nothing(void *arg) {
   const timespec sleep_duration{.tv_nsec = 1000};
   const double start = wall_time();
   const double report_step = 1.0;
   const double stop = start + 5.0;
   double report_after = start + report_step;
   while (1) {
-    thrd_sleep(&sleep_duration, NULL);
+    nanosleep(&sleep_duration, NULL);
     const double now = wall_time();
     if (report_after < now) {
       report_after = now + report_step;
@@ -31,15 +31,18 @@ int do_nothing(void *arg) {
     if (now > stop)
       break;
   }
-  return 0;
+  int* result = (int*)malloc(sizeof(int));
+  *result = 101;
+  pthread_exit(result);
 }
 
 TEST(ExploreTimeTest, DoNothing) {
-  thrd_t nothing_thrd;
-  if (thrd_success == thrd_create(&nothing_thrd, do_nothing, NULL)) {
-    int nothing_result;
-    thrd_join(nothing_thrd, &nothing_result);
-    printf("nothing: %d\n", nothing_result);
+  pthread_t nothing_thrd;
+  if (0 == pthread_create(&nothing_thrd, NULL, do_nothing, NULL)) {
+    int* nothing_result;
+    pthread_join(nothing_thrd, (void**)&nothing_result);
+    printf("nothing: %d\n", *nothing_result);
+    EXPECT_EQ(*nothing_result, 101);
     SUCCEED();
   } else {
     FAIL();

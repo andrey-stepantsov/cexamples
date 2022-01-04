@@ -12,14 +12,22 @@ rbuf_result rbuf_init(rbuf &b, size_t capacity) {
     b.start = 0;
     b.buffer = (unsigned char *)malloc(capacity);
     b.taken = 0;
-    if (NULL == b.buffer)
-        return rbuf_error;
     b.capacity = capacity;
-    if (thrd_success != mtx_init(&b.mtx, mtx_recursive)) {
-        free(b.buffer);
-        return rbuf_error;
+    pthread_mutexattr_t attr;
+    rbuf_result result = rbuf_error;
+    if (0 == pthread_mutexattr_init(&attr)) {
+        if (0 == pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE)) {
+            if (0 == pthread_mutex_init(&b.mtx, &attr)) {
+                b.buffer = (unsigned char *)malloc(capacity);
+                if (NULL != b.buffer)
+                    result = rbuf_success;
+                else
+                    pthread_mutex_destroy(&b.mtx);
+            }
+        }
+        pthread_mutexattr_destroy(&attr);
     }
-    return rbuf_success;
+    return result;
 }
 
 /**
@@ -29,7 +37,8 @@ rbuf_result rbuf_init(rbuf &b, size_t capacity) {
  */
 void rbuf_destroy(rbuf &b) {
     free(b.buffer);
-    mtx_destroy(&b.mtx);
+    // mtx_destroy(&b.mtx);
+    pthread_mutex_destroy(&b.mtx);
 }
 
 /**
@@ -39,10 +48,10 @@ void rbuf_destroy(rbuf &b) {
  * @result capacity of the ring buffer, or -1 on failure, i.e. lock error
  */
 size_t rbuf_capacity(rbuf &b) {
-    if (thrd_success != mtx_lock(&b.mtx))
+    if (pthread_mutex_lock(&b.mtx))
         return -1;
     const size_t capacity = b.capacity;
-    if (thrd_success != mtx_unlock(&b.mtx))
+    if (pthread_mutex_unlock(&b.mtx))
         return -1;
     return capacity;
 };
@@ -53,10 +62,10 @@ size_t rbuf_capacity(rbuf &b) {
  * @result size of data in the ring buffer, or -1 on failure, i.e. lock error
  */
 size_t rbuf_taken(rbuf &b) {
-    if (thrd_success != mtx_lock(&b.mtx))
+    if (pthread_mutex_lock(&b.mtx))
         return -1;
     const size_t taken = b.taken;
-    if (thrd_success != mtx_unlock(&b.mtx))
+    if (pthread_mutex_unlock(&b.mtx))
         return -1;
     return taken;
 }
@@ -67,10 +76,10 @@ size_t rbuf_taken(rbuf &b) {
  * @result available space, or -1 on failure, i.e. lock error
  */
 size_t rbuf_available(rbuf &b) {
-    if (thrd_success != mtx_lock(&b.mtx))
+    if (pthread_mutex_lock(&b.mtx))
         return -1;
     const size_t available = b.capacity - b.taken;
-    if (thrd_success != mtx_unlock(&b.mtx))
+    if (pthread_mutex_unlock(&b.mtx))
         return -1;
     return available;
 }
@@ -84,7 +93,7 @@ size_t rbuf_available(rbuf &b) {
  * @result actual size of the data successully put, or -1 on failure
  */
 size_t rbuf_put(rbuf &b, const unsigned char *data, size_t size) {
-    if (thrd_success != mtx_lock(&b.mtx))
+    if (pthread_mutex_lock(&b.mtx))
         return -1;
     const size_t available = rbuf_available(b);
     const size_t to_copy = size > available ? available : size;
@@ -92,7 +101,7 @@ size_t rbuf_put(rbuf &b, const unsigned char *data, size_t size) {
         b.buffer[(b.start + b.taken + i) % b.capacity] = *(data + i);
     }
     b.taken += to_copy;
-    if (thrd_success != mtx_unlock(&b.mtx))
+    if (pthread_mutex_unlock(&b.mtx))
         return -1;
     return to_copy;
 }
@@ -106,7 +115,7 @@ size_t rbuf_put(rbuf &b, const unsigned char *data, size_t size) {
  * @result actual size of the data successully read, or -1 on failure
  */
 size_t rbuf_get(rbuf &b, unsigned char *data, size_t size) {
-    if (thrd_success != mtx_lock(&b.mtx))
+    if (pthread_mutex_lock(&b.mtx))
         return -1;
     const size_t taken = rbuf_taken(b);
     const size_t to_copy = size > taken ? taken : size;
@@ -115,7 +124,7 @@ size_t rbuf_get(rbuf &b, unsigned char *data, size_t size) {
     }
     (b.start += to_copy) %= b.capacity;
     b.taken -= to_copy;
-    if (thrd_success != mtx_unlock(&b.mtx))
+    if (pthread_mutex_unlock(&b.mtx))
         return -1;
     return to_copy;
 }

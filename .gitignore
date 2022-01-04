@@ -2,6 +2,7 @@
 .cache
 .session.vim
 .vimrc
+.vscode
 
 # Compiled Object files
 *.slo

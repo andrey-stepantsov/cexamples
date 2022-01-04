@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
-#include <threads.h>
+#include <pthread.h>
 
 /**
  * @page ring_buffer Ring Buffer
@@ -13,7 +13,7 @@
  */
 enum rbuf_result {
     /**
-     * indicates success of \ref rbuf_init
+     * indicates success of @ref rbuf_init
      */
     rbuf_success,
     /**
@@ -27,7 +27,7 @@ struct rbuf {
     size_t taken;
     size_t capacity;
     unsigned char *buffer;
-    mtx_t mtx;
+    pthread_mutex_t mtx;
 };
 
 rbuf_result rbuf_init(rbuf &b, size_t capacity);

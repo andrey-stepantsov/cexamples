@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <strings.h>
-#include <threads.h>
+#include <time.h>
 
 /**
  * \page time_util Supporting time routines

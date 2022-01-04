@@ -3,13 +3,15 @@
 #include <gtest/gtest.h>
 #include <stdio.h>
 #include <strings.h>
-#include <threads.h>
+#include <pthread.h>
 
-int put_three(void *arg) {
+void* put_three(void *arg) {
+    int *result = (int*)malloc(sizeof(int));
     rbuf *b = (rbuf *)arg;
     const unsigned char data[3] = {'a', 'b', 'c'};
     rbuf_put(*b, data, 3);
-    return 0;
+    *result = 3;
+    pthread_exit(result);
 }
 
 TEST(RingBufferThreadTest, PutThree) {
@@ -18,10 +20,14 @@ TEST(RingBufferThreadTest, PutThree) {
     EXPECT_EQ(b.start, 0);
     EXPECT_EQ(rbuf_taken(b), 0);
     EXPECT_EQ(rbuf_available(b), rbuf_capacity(b));
-    thrd_t thrd;
-    if (thrd_success == thrd_create(&thrd, put_three, &b)) {
-        int result;
-        thrd_join(thrd, &result);
+    // thrd_t thrd;
+    pthread_t thrd;
+    // if (thrd_success == thrd_create(&thrd, put_three, &b)) {
+    if (0 == pthread_create(&thrd, NULL, put_three, &b)) {
+        int* result;
+        // thrd_join(thrd, &result);
+        pthread_join(thrd, (void**)&result);
+        EXPECT_EQ(*result, 3);
         EXPECT_EQ(rbuf_taken(b), 3);
     } else {
         FAIL();
@@ -32,17 +38,17 @@ const timespec pump_sleep_duration{.tv_nsec = 100};
 const timespec drain_sleep_duration{.tv_nsec = 1000};
 const long int max_put_count = 10000;
 
-int pump_data(void *arg) {
+void* pump_data(void *arg) {
     rbuf *b = (rbuf *)arg;
     const double start = wall_time();
     const double stop = start + 1.0;
-    size_t pumped = 0;
+    size_t &pumped = *((size_t *)malloc(sizeof(size_t)));
+    pumped = 0;
     int count = 0;
     char buffer[500];
     while (1) {
         ++count;
         sprintf(buffer, "Let's write some data (count: %.5d)", count);
-        //    size_t size = sizeof(buffer);
         size_t size = strlen(buffer);
         size_t offset = 0;
         int put_count = 0;
@@ -50,19 +56,20 @@ int pump_data(void *arg) {
             ++put_count;
             offset +=
                 rbuf_put(*b, (unsigned char *)buffer + offset, size - offset);
-            thrd_sleep(&pump_sleep_duration, NULL);
+            nanosleep(&pump_sleep_duration, NULL);
         }
         pumped += offset;
         const double now = wall_time();
         if (now > stop)
             break;
     }
-    return pumped;
+    pthread_exit(&pumped);
 }
 
-int drain_data(void *arg) {
+void* drain_data(void *arg) {
     rbuf *b = (rbuf *)arg;
-    size_t drained = 0;
+    size_t &drained = *((size_t*)malloc(sizeof(size_t)));
+    drained = 0;
     const double start = wall_time();
     const double stop = start + 2.0;
     int count = 0;
@@ -76,29 +83,31 @@ int drain_data(void *arg) {
             zero_read++;
         }
         drained += read;
-        thrd_sleep(&drain_sleep_duration, NULL);
+        nanosleep(&drain_sleep_duration, NULL);
         const double now = wall_time();
         if (now > stop)
             break;
     }
     printf("zero reads: %d\n", zero_read);
-    return drained;
+    pthread_exit(&drained);
 }
 
 TEST(RingBufferThreadTest, PumpData) {
     rbuf b;
     rbuf_init(b, 1024);
-    thrd_t pump_thrd;
-    thrd_t drain_thrd;
-    if (thrd_success == thrd_create(&pump_thrd, pump_data, &b) &&
-        thrd_success == thrd_create(&drain_thrd, drain_data, &b)) {
-        int pump_result;
-        int drain_result;
-        thrd_join(pump_thrd, &pump_result);
-        printf("pumped: %d\n", pump_result);
-        thrd_join(drain_thrd, &drain_result);
-        printf("drained: %d\n", drain_result);
-        EXPECT_EQ(pump_result, drain_result);
+    pthread_t pump_thrd;
+    pthread_t drain_thrd;
+    if (0 == pthread_create(&pump_thrd, NULL, pump_data, &b) &&
+        0 == pthread_create(&drain_thrd, NULL, drain_data, &b)) {
+        size_t* pump_result;
+        size_t* drain_result;
+        pthread_join(pump_thrd, (void**)&pump_result);
+        pthread_join(drain_thrd, (void**)&drain_result);
+        printf("pumped: %d\n", *((int*)pump_result));
+        printf("drained: %d\n", *((int*)drain_result));
+        EXPECT_EQ(*pump_result, *drain_result);
+        free(pump_result);
+        free(drain_result);
     } else {
         FAIL();
     }

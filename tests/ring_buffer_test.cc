@@ -20,6 +20,7 @@ TEST(RingBufferTest, PutOneChar) {
   EXPECT_EQ(rbuf_put(b, data, 1), 1);
   EXPECT_EQ(rbuf_taken(b), 1);
   EXPECT_EQ(rbuf_available(b), capacity - 1);
+  SUCCEED();
 }
 
 TEST(RingBufferTest, PutAndGetOneChar) {

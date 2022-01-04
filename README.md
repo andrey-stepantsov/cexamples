@@ -8,9 +8,9 @@ make
 ctest
 ```
 ### Doxygen
-``
+```
 make doc_doxygen
-``
+```
 To remove path from the documentation of a class (or function, type, etc.) 
 ```
 FULL_PATH_NAMES        = NO

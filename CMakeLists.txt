@@ -9,6 +9,15 @@ set(CMAKE_CXX_STANDARD 11)
 enable_testing()
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+message("CMAKE_DEBUG_POSTFIX = ${CMAKE_DEBUG_POSTFIX}")
+
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package( Threads REQUIRED )
+if (Threads_FOUND) 
+  message("Threads_FOUND = ${Threads_FOUND}")
+  message("CMAKE_USE_PTHREADS_INIT = ${CMAKE_USE_PTHREADS_INIT}")
+endif(Threads_FOUND)
+
 add_subdirectory(src)
 add_subdirectory(tests)
 # add_subdirectory(apps)
