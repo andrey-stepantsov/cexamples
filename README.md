@@ -9,10 +9,24 @@ The code demostrates a simple ring buffer implemented in C. The multithreading i
  - Google Test for unit testing
 
 ## Requirements
-
+To build and test the code you need the following tools:
  - CLang
- - CMake
+ - CMake 
  - Doxygen (optional)
+If you do not have these tools installed you need to install them first.
+
+For example on a clean Debian-10 you could do it wiht the following steps,
+Note that CMake v3.18 is minimum so we build from sources and install v3.22
+
+```
+sudo apt-get install git clang doxygen curl libssl-dev 
+cd ~/
+mkdir tmp && cd tmp
+curl -L https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz | tar xz
+cd 3.22.1/
+./bootstrap
+sudo make install
+```
 
 ## Comments
 
