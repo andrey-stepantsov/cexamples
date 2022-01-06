@@ -22,6 +22,10 @@ enum rbuf_result {
     rbuf_error
 };
 
+/**
+ * @brief the ring buffer control
+ * 
+ */
 struct rbuf {
     size_t start;
     size_t taken;

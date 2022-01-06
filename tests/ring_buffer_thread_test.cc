@@ -20,12 +20,9 @@ TEST(RingBufferThreadTest, PutThree) {
     EXPECT_EQ(b.start, 0);
     EXPECT_EQ(rbuf_taken(b), 0);
     EXPECT_EQ(rbuf_available(b), rbuf_capacity(b));
-    // thrd_t thrd;
     pthread_t thrd;
-    // if (thrd_success == thrd_create(&thrd, put_three, &b)) {
     if (0 == pthread_create(&thrd, NULL, put_three, &b)) {
         int* result;
-        // thrd_join(thrd, &result);
         pthread_join(thrd, (void**)&result);
         EXPECT_EQ(*result, 3);
         EXPECT_EQ(rbuf_taken(b), 3);

@@ -1,5 +1,23 @@
-### build
+# Sample C code: mutlithreading with mutexes
 
+The code demostrates a simple ring buffer implemented in C. The multithreading is supported via POSIX Threads (pthreads).
+
+## Features
+ - CMake
+ - Doxygen
+ - The POSIX Threads library (pthreads)
+ - Google Test for unit testing
+
+## Requirements
+
+ - CLang
+ - CMake
+ - Doxygen (optional)
+
+## Comments
+
+### build
+Clone the repo locally `cd` to the root folder and:
 ```
 mkdir build
 cd build
@@ -7,6 +25,7 @@ cmake ..
 make
 ctest
 ```
+
 ### Doxygen
 ```
 make doc_doxygen
@@ -19,15 +38,12 @@ Alternatively, if a relative path is desirable:
 ```
 FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        = ../ # or ../..
-
 ```
-### .gitignore
+## Misc files
 
-```
-.swp files
-build directory
-```
+The `.clang` and `.clang-format` files in the root project folder are necessary to support convinient VIM configuration. They are not needed to build the code and run the tests.
 
+## Vim related notes
 ### my '~/.vimrc'
 ```
 " Plugins will be downloaded under the specified directory.
