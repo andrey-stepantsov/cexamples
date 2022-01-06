@@ -23,7 +23,7 @@ sudo apt-get install git clang doxygen curl libssl-dev
 cd ~/
 mkdir tmp && cd tmp
 curl -L https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1.tar.gz | tar xz
-cd 3.22.1/
+cd cmake-3.22.1/
 ./bootstrap
 sudo make install
 ```
