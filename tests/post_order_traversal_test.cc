@@ -22,35 +22,35 @@ typedef struct stack_s {
     int top = -1;
 } stack_t;
 
-stack_s *create(size_t size) {
+stack_t *create(size_t size) {
     stack_t *stack_p = (stack_s *)malloc(sizeof(stack_t));
     stack_p->top = -1;
     stack_p->ptr = (stack_el_t *)calloc(size, sizeof(stack_el_t));
     return stack_p;
 }
 
-void destroy(stack_s *stack_p) {
+void destroy(stack_t *stack_p) {
     free(stack_p->ptr);
     free(stack_p);
 }
 
-void push(stack_s *stack_p, node_t *ptr, stack_el_type type) {
+void push(stack_t *stack_p, node_t *ptr, stack_el_type type) {
     ++stack_p->top;
     stack_p->ptr[stack_p->top].ptr = ptr;
     stack_p->ptr[stack_p->top].type = type;
 }
 
-void pop(stack_s *stack_p, node_t **ptr, stack_el_type *type) {
+void pop(stack_t *stack_p, node_t **ptr, stack_el_type *type) {
     *ptr = stack_p->ptr[stack_p->top].ptr;
     *type = stack_p->ptr[stack_p->top].type;
     --stack_p->top;
 }
 
-int is_empty(stack_s *stack_p) { return stack_p->top == -1; }
+int is_empty(stack_t *stack_p) { return stack_p->top == -1; }
 
 TEST(PostOrderTraversal, StackPushPop) {
     node_t node_1 = {.data = 1, .left_p = NULL, .right_p = NULL};
-    stack_s *stack_p = create(STACK_SIZE);
+    stack_t *stack_p = create(STACK_SIZE);
     EXPECT_TRUE(is_empty(stack_p));
     push(stack_p, &node_1, node_element);
     push(stack_p, node_1.right_p, right_element);
@@ -73,7 +73,7 @@ int walk_tree(node_t *tree, int *result, int max_size) {
     }
     int node_count = 0;
     node_t *w_p = tree;
-    stack_s *stack_p = create(STACK_SIZE);
+    stack_t *stack_p = create(max_size);
     do {
         while (NULL != w_p) {
             push(stack_p, w_p, node_element);
@@ -85,7 +85,7 @@ int walk_tree(node_t *tree, int *result, int max_size) {
             stack_el_type type;
             pop(stack_p, &w_p, &type);
             if (node_element == type) {
-                *(result + node_count++) = w_p->data;
+                *(result + node_count++) = w_p->data; // "print to the output" 
             } else {
                 break;
             }
