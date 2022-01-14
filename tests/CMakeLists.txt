@@ -20,8 +20,12 @@ target_link_libraries( explore_time_test time_util gtest_main)
 add_executable( post_order_traversal_test post_order_traversal_test.cc)
 target_link_libraries( post_order_traversal_test gtest_main )
 
+add_executable( post_order_traversal_macro_test post_order_traversal_macro_test.cc)
+target_link_libraries( post_order_traversal_macro_test gtest_main )
+
 include(GoogleTest)
 gtest_discover_tests(ring_buffer_test)
 gtest_discover_tests(ring_buffer_thread_test)
 gtest_discover_tests(explore_time_test)
 gtest_discover_tests(post_order_traversal_test)
+gtest_discover_tests(post_order_traversal_macro_test)
